@@ -1,21 +1,24 @@
+// src/components/Navbar.jsx
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 function Navbar({ darkMode, setDarkMode }) {
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState("about");
   const langRef = useRef(null);
   const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
-  const location = useLocation();
+
+  const isRTL = i18n.language === "ar" || i18n.language === "he";
 
   const navItems = [
-    { label: t("home"), path: "/" },
-    { label: t("mortgage"), path: "/mortgage" },
-    { label: t("business"), path: "/business" },
-    { label: t("family"), path: "/family-finance" },
-    { label: t("bank"), path: "/bank-representation" },
-    { label: t("contact"), path: "/contact" },
+    { label: t("home"), id: "about" },
+    { label: t("mortgage"), id: "mortgage" },
+    { label: t("business"), id: "business" },
+    { label: t("family"), id: "family-finance" },
+    { label: t("bank"), id: "bank-representation" },
+    { label: t("contact"), id: "contact" },
   ];
 
   useEffect(() => {
@@ -24,105 +27,182 @@ function Navbar({ darkMode, setDarkMode }) {
         setLangDropdownOpen(false);
       }
     };
+
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
+  useEffect(() => {
+    const sectionIds = navItems.map((item) => item.id);
+    const sections = sectionIds
+      .map((id) => document.getElementById(id))
+      .filter(Boolean);
+
+    if (!sections.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibleSections = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+
+        if (visibleSections.length > 0) {
+          setActiveSection(visibleSections[0].target.id);
+        }
+      },
+      {
+        root: null,
+        rootMargin: "-120px 0px -45% 0px",
+        threshold: [0.15, 0.3, 0.5, 0.7],
+      }
+    );
+
+    sections.forEach((section) => observer.observe(section));
+
+    return () => observer.disconnect();
+  }, [i18n.language]);
+
   const changeLanguage = (lang) => {
-    i18n.changeLanguage(lang).then(() => setLangDropdownOpen(false));
+    i18n.changeLanguage(lang).then(() => {
+      setLangDropdownOpen(false);
+      setMobileOpen(false);
+    });
   };
 
+  const scrollToSection = (id) => {
+  const el = document.getElementById(id);
+
+  if (el) {
+    el.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+
+    setActiveSection(id);
+  }
+
+  setMobileOpen(false);
+};
+
   return (
-    <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur dark:bg-gray-900/90 text-gray-800 dark:text-white shadow border-b border-gray-200 dark:border-gray-700 px-6 py-3">
-      <div className="max-w-7xl mx-auto grid grid-cols-3 items-center">
-        {/* RIGHT — Brand */}
-        <div className="col-start-1 flex justify-start">
+    <header
+      className={`sticky top-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? "bg-white/90 dark:bg-gray-950/90 backdrop-blur-xl shadow-md border-b border-white/20 dark:border-gray-800"
+          : "bg-white/70 dark:bg-gray-950/70 backdrop-blur-md border-b border-transparent"
+      }`}
+    >
+      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="h-20 flex items-center justify-between gap-4">
           <button
-            onClick={() => navigate("/")}
-            className="text-xl font-extrabold text-primary cursor-pointer select-none"
+            onClick={() => scrollToSection("about")}
+            className="text-xl sm:text-2xl font-extrabold tracking-wide text-primary"
             title={t("brand")}
           >
             {t("brand")}
           </button>
-        </div>
 
-        {/* CENTER — Nav Items */}
-        <div className="hidden sm:flex justify-center">
-          <div className={`flex gap-4 ${i18n.language === "ar" || i18n.language === "he" ? "flex-row-reverse" : "flex-row"}`}>
-            {navItems.map((item) => (
+          <div className="hidden lg:flex items-center gap-2">
+            <div className={`flex items-center gap-2 ${isRTL ? "flex-row-reverse" : ""}`}>
+              {navItems.map((item) => {
+                const active = activeSection === item.id;
+
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => scrollToSection(item.id)}
+                    className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${
+                      active
+                        ? "bg-primary text-gray-900 shadow"
+                        : "text-gray-700 dark:text-gray-200 hover:bg-primary/20"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div ref={langRef} className="relative">
               <button
-                key={item.path}
-                onClick={() => navigate(item.path)}
-                className={`px-4 py-1.5 rounded-md font-medium text-sm transition 
-                  ${location.pathname === item.path 
-                    ? "bg-primary text-black dark:text-white shadow-md" 
-                    : "hover:bg-primary/70 hover:text-black dark:hover:text-white bg-gray-100 dark:bg-gray-700"}`}
+                onClick={() => setLangDropdownOpen((prev) => !prev)}
+                className="rounded-full border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm font-semibold bg-white/80 dark:bg-gray-900/80 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
               >
-                {item.label}
+                {i18n.language === "he" ? "עברית" : "العربية"}
               </button>
-            ))}
+
+              {langDropdownOpen && (
+                <div className="absolute top-full mt-2 left-0 w-32 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-xl">
+                  <button
+                    onClick={() => changeLanguage("he")}
+                    className="w-full px-4 py-3 text-right hover:bg-gray-100 dark:hover:bg-gray-800"
+                  >
+                    עברית
+                  </button>
+                  <button
+                    onClick={() => changeLanguage("ar")}
+                    className="w-full px-4 py-3 text-right hover:bg-gray-100 dark:hover:bg-gray-800"
+                  >
+                    العربية
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => setDarkMode((s) => !s)}
+              className="rounded-full border border-gray-300 dark:border-gray-700 px-3 py-2 text-sm bg-white/80 dark:bg-gray-900/80 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+            >
+              {darkMode ? "☀️" : "🌙"}
+            </button>
+
+            <button
+              onClick={() => setMobileOpen((prev) => !prev)}
+              className="lg:hidden rounded-full border border-gray-300 dark:border-gray-700 px-3 py-2 bg-white/80 dark:bg-gray-900/80"
+            >
+              ☰
+            </button>
           </div>
         </div>
 
-        {/* LEFT — Language & Theme */}
-        <div className="col-start-3 flex justify-end items-center gap-2">
-          {/* Language Dropdown */}
-          <div ref={langRef} className="relative">
-            <button
-              onClick={() => setLangDropdownOpen((prev) => !prev)}
-              className="text-sm font-semibold border border-gray-300 dark:border-gray-600 px-3 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-            >
-              {i18n.language === "he" ? "עברית" : "العربية"}
-            </button>
-            {langDropdownOpen && (
-              <div className="absolute left-0 mt-2 w-28 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-md z-50">
-                <button
-                  onClick={() => changeLanguage("he")}
-                  className="w-full text-right px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  🇮🇱 עברית
-                </button>
-                <button
-                  onClick={() => changeLanguage("ar")}
-                  className="w-full text-right px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  🇸🇦 العربية
-                </button>
+        {mobileOpen && (
+          <div className="lg:hidden pb-4">
+            <div className="rounded-3xl bg-white/95 dark:bg-gray-900/95 shadow-xl border border-gray-200 dark:border-gray-800 p-3">
+              <div className={`flex flex-col gap-2 ${isRTL ? "text-right" : "text-left"}`}>
+                {navItems.map((item) => {
+                  const active = activeSection === item.id;
+
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => scrollToSection(item.id)}
+                      className={`w-full rounded-2xl px-4 py-3 text-sm font-semibold transition-all duration-300 ${
+                        active
+                          ? "bg-primary text-gray-900 shadow"
+                          : "bg-gray-50 dark:bg-gray-800 hover:bg-primary/20"
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  );
+                })}
               </div>
-            )}
+            </div>
           </div>
-
-          {/* Dark Mode Toggle */}
-          <button
-            onClick={() => setDarkMode((s) => !s)}
-            className={`px-2 py-1 text-sm rounded border font-bold shadow-sm 
-              ${darkMode 
-                ? "bg-transparent text-white border-gray-600 hover:bg-gray-800" 
-                : "bg-white text-black border-gray-300 hover:bg-gray-100"}`}
-          >
-            {darkMode ? "☀️" : "🌙"}
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile Nav */}
-      <div className="sm:hidden mt-3">
-        <div className={`flex flex-wrap justify-center gap-2 ${i18n.language === "ar" || i18n.language === "he" ? "flex-row-reverse" : "flex-row"}`}>
-          {navItems.map((item) => (
-            <button
-              key={item.path}
-              onClick={() => navigate(item.path)}
-              className={`px-3 py-1 rounded-md text-sm font-medium transition 
-                ${location.pathname === item.path 
-                  ? "bg-primary text-black dark:text-white shadow-md" 
-                  : "bg-gray-100 dark:bg-gray-700 hover:bg-primary hover:text-black dark:hover:text-white"}`}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-      </div>
-    </nav>
+        )}
+      </nav>
+    </header>
   );
 }
 

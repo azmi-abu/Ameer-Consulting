@@ -1,14 +1,14 @@
-// components/PageWrapper.jsx
+// src/components/PageWrapper.jsx
 import { motion } from "framer-motion";
 
-export default function PageWrapper({ children }) {
+export default function PageWrapper({ children, className = "" }) {
   return (
     <motion.div
-      className="min-h-[calc(100vh-150px)] flex flex-col items-center justify-center text-center px-4 py-10"
-      initial={{ opacity: 0, scale: 0.97 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.97 }}
-      transition={{ duration: 0.4 }}
+      className={`w-full ${className}`}
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 24 }}
+      transition={{ duration: 0.45, ease: "easeOut" }}
     >
       {children}
     </motion.div>

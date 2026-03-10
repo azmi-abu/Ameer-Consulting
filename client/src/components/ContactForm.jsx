@@ -22,11 +22,7 @@ function ContactForm({ subject }) {
     console.log("Form submitted:", { ...form, subject });
   };
 
-  const localizedSubject = i18n.language === "ar"
-    ? t("mortgage.title")
-    : i18n.language === "he"
-    ? t("mortgage.title")
-    : subject;
+  const localizedSubject = subject;
 
   return (
     <form

@@ -1,37 +1,50 @@
+// src/pages/Contact.jsx
 import { useTranslation } from "react-i18next";
 import PageWrapper from "../components/PageWrapper";
+import ContactForm from "../components/ContactForm";
 
 function Contact() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar" || i18n.language === "he";
 
   return (
     <PageWrapper>
-    <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">{t("contact.title")}</h1>
-      <form className="space-y-4">
-        <input
-          type="text"
-          placeholder={t("contact.name")}
-          className="w-full border p-2 rounded"
-        />
-        <input
-          type="email"
-          placeholder={t("contact.email")}
-          className="w-full border p-2 rounded"
-        />
-        <textarea
-          placeholder={t("contact.message")}
-          rows="5"
-          className="w-full border p-2 rounded"
-        ></textarea>
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          {t("contact.submit")}
-        </button>
-      </form>
-    </div>
+      <section id="contact" className="relative overflow-hidden py-16 sm:py-24">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-white to-primary/10 dark:from-primary/10 dark:via-gray-950 dark:to-gray-900" />
+        <div className="relative max-w-7xl mx-auto px-6">
+          <div
+            className={`grid lg:grid-cols-2 gap-10 items-start ${
+              isRTL ? "lg:[direction:rtl]" : ""
+            }`}
+          >
+            <div className={isRTL ? "text-right" : "text-left"}>
+              <p className="inline-flex rounded-full bg-white/80 dark:bg-gray-800 px-4 py-2 text-sm font-medium shadow-sm mb-4">
+                {t("contact.title")}
+              </p>
+              <h1 className="text-4xl sm:text-5xl font-extrabold mb-6">
+                {t("contact.title")}
+              </h1>
+              <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 max-w-xl">
+                {t("about.description")}
+              </p>
+
+              <div className="mt-10 space-y-4">
+                <div className="rounded-2xl bg-white/90 dark:bg-gray-900 p-5 shadow-sm">
+                  <div className="font-bold mb-1">{t("contact.phone")}</div>
+                  <div className="text-gray-600 dark:text-gray-400">+972 XX-XXX-XXXX</div>
+                </div>
+
+                <div className="rounded-2xl bg-white/90 dark:bg-gray-900 p-5 shadow-sm">
+                  <div className="font-bold mb-1">{t("contact.email")}</div>
+                  <div className="text-gray-600 dark:text-gray-400">info@example.com</div>
+                </div>
+              </div>
+            </div>
+
+            <ContactForm subject={t("contact.title")} />
+          </div>
+        </div>
+      </section>
     </PageWrapper>
   );
 }
