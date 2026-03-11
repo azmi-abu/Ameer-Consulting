@@ -41,7 +41,10 @@
   "contact.phone": "מספר טלפון",
   "contact.message": "ההודעה שלך",
   "contact.submit": "שלח",
-
+  "contact.success": "פנייתך התקבלה בהצלחה",
+  "contact.error": "שליחת ההודעה נכשלה, נסה שוב",
+  
+  
   "family.title": "תכנון כלכלת המשפחה",
   "family.description": "אנו מסייעים למשפחות בתכנון פיננסי, איחוד חובות, אסטרטגיות השקעה, ושיפור דירוג ה-BDI שלהן.",
   

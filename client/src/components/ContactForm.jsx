@@ -17,6 +17,10 @@ function ContactForm({ subject }) {
     email: "",
   });
 
+  const [loading, setLoading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [statusType, setStatusType] = useState("");
+
   const validateField = (name, value) => {
     switch (name) {
       case "name":
@@ -65,31 +69,78 @@ function ContactForm({ subject }) {
       ...prev,
       [name]: validateField(name, updatedValue),
     }));
+
+    setStatusMessage("");
+    setStatusType("");
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    const newErrors = {
-      name: validateField("name", form.name),
-      phone: validateField("phone", form.phone),
-      email: validateField("email", form.email),
-    };
-
-    setErrors(newErrors);
-
-    const hasErrors = Object.values(newErrors).some((error) => error);
-    if (hasErrors) return;
-
-    console.log("Form submitted:", { ...form, subject });
+  const newErrors = {
+    name: validateField("name", form.name),
+    phone: validateField("phone", form.phone),
+    email: validateField("email", form.email),
   };
+
+  setErrors(newErrors);
+
+  const hasErrors = Object.values(newErrors).some((error) => error);
+  if (hasErrors) return;
+
+  try {
+    setLoading(true);
+
+    const res = await fetch("http://localhost:5000/api/contact", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: form.name,
+        phone: form.phone,
+        email: form.email,
+        subject,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Failed");
+    }
+
+    setStatusMessage(t("contact.success"));
+    setStatusType("success");
+
+    setForm({
+      name: "",
+      phone: "",
+      email: "",
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    setStatusMessage(t("contact.error"));
+    setStatusType("error");
+
+  } finally {
+    setLoading(false);
+
+    // hide message after 3 seconds
+    setTimeout(() => {
+      setStatusMessage("");
+      setStatusType("");
+    }, 3000);
+  }
+};
 
   const isFormValid =
     form.name.trim() &&
     !/\d/.test(form.name) &&
     /^05\d{8}$/.test(form.phone) &&
-    (form.email === "" ||
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email));
+    (form.email === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email));
 
   return (
     <form
@@ -154,17 +205,28 @@ function ContactForm({ subject }) {
         )}
       </div>
 
+      {statusMessage && (
+  <div
+    className={`text-center text-sm font-medium p-3 rounded-lg ${
+      statusType === "success"
+        ? "bg-green-100 text-green-700"
+        : "bg-red-100 text-red-700"
+    }`}
+  >
+    {statusMessage}
+  </div>
+)}
+
       <button
         type="submit"
-        disabled={!isFormValid}
-        className={`w-full font-semibold py-3 px-6 rounded-lg transition duration-300
-        ${
-          isFormValid
+        disabled={!isFormValid || loading}
+        className={`w-full font-semibold py-3 px-6 rounded-lg transition duration-300 ${
+          isFormValid && !loading
             ? "bg-primary text-white shadow-lg shadow-primary/40 hover:scale-[1.02]"
             : "bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed"
         }`}
       >
-        {t("contact.submit")}
+        {loading ? "שולח..." : t("contact.submit")}
       </button>
     </form>
   );

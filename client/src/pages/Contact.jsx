@@ -29,8 +29,7 @@ function Contact() {
                 <div className="rounded-2xl bg-white/90 dark:bg-gray-900 p-5 shadow-sm">
                   <div className="font-bold mb-1">{t("contact.phone")}</div>
                   <div className="text-gray-600 dark:text-gray-400">
-                    <span className="text-gray-500">050-123-4567</span>
-                    <span className="text-gray-500">972+</span>
+                    <span className="text-gray-500">972-050-123-4567+</span>
                 </div>
                 </div>
 
