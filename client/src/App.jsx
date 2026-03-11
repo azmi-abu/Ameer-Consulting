@@ -1,9 +1,9 @@
 // App.jsx
 import { BrowserRouter as Router } from "react-router-dom";
-// import { AnimatePresence } from "framer-motion";
-// import { Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import AccessibilityTools from "./components/AccessibilityTools";
+import AccessibilityStatementModal from "./components/AccessibilityStatementModal";
 import About from "./pages/About";
 import Mortgage from "./pages/Mortgage";
 import Business from "./pages/Business";
@@ -14,28 +14,16 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import FloatingButtons from "./components/FloatingButtons";
 
-// function AnimatedRoutes() {
-//   const location = useLocation();
-//   return (
-//     <AnimatePresence mode="wait">
-//       <Routes location={location} key={location.pathname}>
-//         <Route path="/" element={<About />} />
-//         <Route path="/mortgage" element={<Mortgage />} />
-//         <Route path="/business" element={<Business />} />
-//         <Route path="/family-finance" element={<FamilyFinance />} />
-//         <Route path="/bank-representation" element={<BankRepresentation />} />
-//         <Route path="/contact" element={<Contact />} />
-//       </Routes>
-//     </AnimatePresence>
-//   );
-// }
-
 function App() {
   const { i18n } = useTranslation();
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem("theme") === "dark");
+  const [darkMode, setDarkMode] = useState(
+    () => localStorage.getItem("theme") === "dark"
+  );
+  const [openA11y, setOpenA11y] = useState(false);
 
   useEffect(() => {
-    document.documentElement.dir = i18n.language === "ar" || i18n.language === "he" ? "rtl" : "ltr";
+    document.documentElement.dir =
+      i18n.language === "ar" || i18n.language === "he" ? "rtl" : "ltr";
   }, [i18n.language]);
 
   useEffect(() => {
@@ -43,10 +31,22 @@ function App() {
     localStorage.setItem("theme", darkMode ? "dark" : "light");
   }, [darkMode]);
 
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape") {
+        setOpenA11y(false);
+      }
+    };
+
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   return (
     <Router>
       <div className="min-h-screen flex flex-col bg-white dark:bg-gray-950 text-gray-900 dark:text-white transition-colors duration-300">
         <Navbar darkMode={darkMode} setDarkMode={setDarkMode} />
+
         <main className="flex-grow">
           <About />
           <Mortgage />
@@ -55,8 +55,14 @@ function App() {
           <BankRepresentation />
           <Contact />
         </main>
+
         <FloatingButtons />
-        <Footer />
+        <Footer onOpenA11y={() => setOpenA11y(true)} />
+        <AccessibilityTools />
+
+        {openA11y && (
+          <AccessibilityStatementModal onClose={() => setOpenA11y(false)} />
+        )}
       </div>
     </Router>
   );

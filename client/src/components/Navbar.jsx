@@ -18,7 +18,7 @@ function Navbar({ darkMode, setDarkMode }) {
     { label: t("business"), id: "business" },
     { label: t("family"), id: "family-finance" },
     { label: t("bank"), id: "bank-representation" },
-    { label: t("contact"), id: "contact" },
+    { label: t("contact.title"), id: "contact" },
   ];
 
   useEffect(() => {

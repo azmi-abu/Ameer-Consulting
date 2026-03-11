@@ -1,8 +1,7 @@
-// src/components/Footer.jsx
 import { useTranslation } from "react-i18next";
 import { FaInstagram, FaFacebookF } from "react-icons/fa";
 
-function Footer() {
+function Footer({ onOpenA11y }) {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "ar" || i18n.language === "he";
 
@@ -32,12 +31,13 @@ function Footer() {
             </a>
           </div>
 
-          <a
-            href="/accessibility"
+          <button
+            type="button"
+            onClick={onOpenA11y}
             className="text-gray-900 dark:text-white underline underline-offset-4 hover:text-primary transition"
           >
             {t("footer.accessibility")}
-          </a>
+          </button>
 
           <p
             className={`text-gray-700 dark:text-gray-300 text-sm ${

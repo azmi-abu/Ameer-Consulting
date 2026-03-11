@@ -1,82 +1,168 @@
-// ContactForm.jsx
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 function ContactForm({ subject }) {
-  const { t, i18n } = useTranslation();
-  const dir = i18n.language === "ar" || i18n.language === "he" ? "rtl" : "ltr";
+  const { t } = useTranslation();
+  const dir = "rtl";
 
   const [form, setForm] = useState({
     name: "",
     phone: "",
     email: "",
-    message: "",
   });
 
+  const [errors, setErrors] = useState({
+    name: "",
+    phone: "",
+    email: "",
+  });
+
+  const validateField = (name, value) => {
+    switch (name) {
+      case "name":
+        if (!value.trim()) return "Name is required";
+        if (/\d/.test(value)) return "Name cannot contain numbers";
+        return "";
+
+      case "phone":
+        if (!value.trim()) return "Phone number is required";
+        if (!/^05\d{8}$/.test(value)) {
+          return "Phone must start with 05 and be 10 digits";
+        }
+        return "";
+
+      case "email":
+        if (!value.trim()) return "";
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          return "Invalid email";
+        }
+        return "";
+
+      default:
+        return "";
+    }
+  };
+
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    let updatedValue = value;
+
+    if (name === "phone") {
+      updatedValue = value.replace(/\D/g, "").slice(0, 10);
+    }
+
+    if (name === "name") {
+      updatedValue = value.replace(/\d/g, "");
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: updatedValue,
+    }));
+
+    setErrors((prev) => ({
+      ...prev,
+      [name]: validateField(name, updatedValue),
+    }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    const newErrors = {
+      name: validateField("name", form.name),
+      phone: validateField("phone", form.phone),
+      email: validateField("email", form.email),
+    };
+
+    setErrors(newErrors);
+
+    const hasErrors = Object.values(newErrors).some((error) => error);
+    if (hasErrors) return;
+
     console.log("Form submitted:", { ...form, subject });
   };
 
-  const localizedSubject = subject;
+  const isFormValid =
+    form.name.trim() &&
+    !/\d/.test(form.name) &&
+    /^05\d{8}$/.test(form.phone) &&
+    (form.email === "" ||
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email));
 
   return (
     <form
       onSubmit={handleSubmit}
       className="space-y-4 bg-gray-50 dark:bg-gray-800 p-6 rounded-xl shadow-md transition"
       dir={dir}
+      noValidate
     >
-      <h2 className="text-xl font-semibold text-center mb-4">
-        {localizedSubject} — {t("contact.title")}
+      <h2 className="text-2xl font-semibold text-center mb-4">
+        {t("contact.title")}
       </h2>
 
-      <input
-        type="text"
-        name="name"
-        placeholder={`* ${t("contact.name")}`}
-        required
-        className="w-full p-3 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary"
-        value={form.name}
-        onChange={handleChange}
-      />
+      {subject && (
+        <p className="text-center text-gray-600 dark:text-gray-300 -mt-2 mb-4">
+          {subject}
+        </p>
+      )}
 
-      <input
-        type="tel"
-        name="phone"
-        placeholder={`* ${t("contact.phone")}`}
-        required
-        dir="rtl"
-        className="w-full p-3 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary"
-        value={form.phone}
-        onChange={handleChange}
-      />
+      <div>
+        <input
+          type="text"
+          name="name"
+          placeholder={`* ${t("contact.name")}`}
+          required
+          className="w-full p-3 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary"
+          value={form.name}
+          onChange={handleChange}
+        />
+        {errors.name && (
+          <p className="text-sm text-red-500 mt-1">{errors.name}</p>
+        )}
+      </div>
 
-      <input
-        type="email"
-        name="email"
-        placeholder={t("contact.email")}
-        className="w-full p-3 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary"
-        value={form.email}
-        onChange={handleChange}
-      />
+      <div>
+        <input
+          type="tel"
+          name="phone"
+          placeholder={`* ${t("contact.phone")}`}
+          required
+          inputMode="numeric"
+          dir="rtl"
+          className="w-full p-3 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary"
+          value={form.phone}
+          onChange={handleChange}
+        />
+        {errors.phone && (
+          <p className="text-sm text-red-500 mt-1">{errors.phone}</p>
+        )}
+      </div>
 
-      <textarea
-        name="message"
-        placeholder={`* ${t("contact.message")}`}
-        required
-        rows={4}
-        className="w-full p-3 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-        value={form.message}
-        onChange={handleChange}
-      />
+      <div>
+        <input
+          type="email"
+          name="email"
+          placeholder={t("contact.email")}
+          className="w-full p-3 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary"
+          value={form.email}
+          onChange={handleChange}
+        />
+        {errors.email && (
+          <p className="text-sm text-red-500 mt-1">{errors.email}</p>
+        )}
+      </div>
 
       <button
         type="submit"
-        className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-3 px-6 rounded-lg transition duration-200"
+        disabled={!isFormValid}
+        className={`w-full font-semibold py-3 px-6 rounded-lg transition duration-300
+        ${
+          isFormValid
+            ? "bg-primary text-white shadow-lg shadow-primary/40 hover:scale-[1.02]"
+            : "bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed"
+        }`}
       >
         {t("contact.submit")}
       </button>

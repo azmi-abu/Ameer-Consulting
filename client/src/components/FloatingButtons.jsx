@@ -2,7 +2,7 @@
 import { FaWhatsapp, FaEnvelope, FaUniversalAccess } from "react-icons/fa";
 
 function FloatingButtons() {
-  const phoneNumber = "0532476004"; // replace
+  const phoneNumber = "0524531679"; // replace
   const email = "amirtaha@live.com"; // replace
 
   return (
@@ -26,14 +26,6 @@ function FloatingButtons() {
           <FaWhatsapp size={26} />
         </a>
       </div>
-
-      <button
-        type="button"
-        aria-label="Accessibility"
-        className="fixed bottom-5 left-5 z-[999] w-14 h-14 rounded-full bg-white text-[#3b82f6] shadow-lg flex items-center justify-center hover:scale-110 transition border border-gray-200"
-      >
-        <FaUniversalAccess size={24} />
-      </button>
     </>
   );
 }
